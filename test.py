@@ -24,14 +24,13 @@ import pyttsx3
 import vlc
 from vlcPlayer import VlcPlayer
 import threading
-from time import sleep
+import time
 
 engine = pyttsx3.init()
 
 app = Flask(__name__)
 CORS(app)
 
-player = VlcPlayer()
 
 @app.route('/')
 def main_page():
@@ -65,18 +64,23 @@ def synth():
     except:
         return jsonify({'result': 'fail'})
 
-def timer(event, ms):
-    print('play1 - ', event)
+# def gettime(event, ms):
+#     print('play1 - ', event)
 
-def stopped(event):
+def stop(event):
     print('player stop')
     global status
     status = 1
 
 @app.route('/play')
+def playWeb():
+    play()
+
+
 def play():
-    player.add_callback(vlc.EventType.MediaPlayerStopped, stopped)
-    player.add_callback_time(vlc.EventType.MediaPlayerTimeChanged, timer)
+    player = VlcPlayer()
+    player.add_callback(vlc.EventType.MediaPlayerStopped, stop)
+    player.add_callback_timer()
     player.play('1.mp4')
 
     status = 0
@@ -84,17 +88,10 @@ def play():
         if status == 1:
             break
         else:
-            sleep(.1)
+            time.sleep(0.5)
 
     return "play ok"
 
-@app.route('/stop')
-def stop():
-    if player.is_playing:
-        player.stop()
-        # player.release()
-    return "stop ok"
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    play()
 
